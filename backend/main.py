@@ -3,8 +3,10 @@ import os
 import re
 from dotenv import load_dotenv
 
-# Automatically load environment variables from .env file
+# Automatically load environment variables from backend/.env and root .env
 load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
