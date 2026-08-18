@@ -401,6 +401,7 @@ export function App() {
           const firstSection = cleanData.sections[0];
           const firstId = firstSection?.id || 'sec-summary';
           setActiveSectionId(firstId);
+          setActiveView('editor');
         }}
       />
 
@@ -489,6 +490,7 @@ export function App() {
           updateResumeData(() => mergedResume);
           const firstSecId = mergedResume.sections[0]?.id || 'sec-summary';
           setActiveSectionId(firstSecId);
+          setActiveView('editor');
         }}
       />
     </div>

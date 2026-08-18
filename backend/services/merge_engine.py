@@ -284,6 +284,9 @@ Return ONLY a valid JSON object formatted as:
 
     # Extract and parse ResumeData
     merged_data_raw = data.get("mergedResume", {})
+    personal_raw = merged_data_raw.get("personalInfo", {})
+    sections_raw = merged_data_raw.get("sections", [])
+
     def clean_str(v: Any, default: str = "") -> str:
         if not v or not isinstance(v, str):
             return default

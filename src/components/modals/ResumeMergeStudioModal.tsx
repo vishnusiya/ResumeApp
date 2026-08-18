@@ -177,11 +177,11 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
         prev.map((r) =>
           r.isPrimary
             ? {
-                ...r,
-                content: JSON.stringify(currentResume),
-                parsedData: currentResume,
-                sectionsCount: currentResume.sections.length,
-              }
+              ...r,
+              content: JSON.stringify(currentResume),
+              parsedData: currentResume,
+              sectionsCount: currentResume.sections.length,
+            }
             : r
         )
       );
@@ -257,13 +257,13 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
       prev.map((r) =>
         r.id === id
           ? {
-              ...r,
-              filename: 'Current Resume (Primary)',
-              content: JSON.stringify(currentResume),
-              parsedData: currentResume,
-              fileSize: 'Current Editor',
-              sectionsCount: currentResume.sections.length,
-            }
+            ...r,
+            filename: 'Current Resume (Primary)',
+            content: JSON.stringify(currentResume),
+            parsedData: currentResume,
+            fileSize: 'Current Editor',
+            sectionsCount: currentResume.sections.length,
+          }
           : r
       )
     );
@@ -274,12 +274,12 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
       prev.map((r) =>
         r.id === id
           ? {
-              ...r,
-              content: '',
-              parsedData: undefined,
-              fileSize: '',
-              sectionsCount: 0,
-            }
+            ...r,
+            content: '',
+            parsedData: undefined,
+            fileSize: '',
+            sectionsCount: 0,
+          }
           : r
       )
     );
@@ -299,13 +299,13 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
         prev.map((r) =>
           r.id === activeResumeTab
             ? {
-                ...r,
-                filename: file.name,
-                content: JSON.stringify(parsed),
-                parsedData: parsed,
-                fileSize: sizeStr,
-                sectionsCount: parsed.sections.length,
-              }
+              ...r,
+              filename: file.name,
+              content: JSON.stringify(parsed),
+              parsedData: parsed,
+              fileSize: sizeStr,
+              sectionsCount: parsed.sections.length,
+            }
             : r
         )
       );
@@ -325,10 +325,10 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
       prev.map((r) =>
         r.id === activeResumeTab
           ? {
-              ...r,
-              content: text,
-              sectionsCount: text.length > 50 ? 4 : 0,
-            }
+            ...r,
+            content: text,
+            sectionsCount: text.length > 50 ? 4 : 0,
+          }
           : r
       )
     );
@@ -420,31 +420,28 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
           {/* Stepper Indicator */}
           <div className="flex items-center gap-2 text-xs font-semibold select-none">
             <div
-              className={`flex items-center gap-1 px-3 py-1 rounded-full border transition-all ${
-                currentStep >= 1
+              className={`flex items-center gap-1 px-3 py-1 rounded-full border transition-all ${currentStep >= 1
                   ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
                   : 'bg-white text-slate-500 border-slate-200'
-              }`}
+                }`}
             >
               <span>1. Resumes ({sourceResumes.filter((r) => r.parsedData || r.content.trim()).length})</span>
             </div>
             <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
             <div
-              className={`flex items-center gap-1 px-3 py-1 rounded-full border transition-all ${
-                hasJD
+              className={`flex items-center gap-1 px-3 py-1 rounded-full border transition-all ${hasJD
                   ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
                   : 'bg-white text-slate-500 border-slate-200'
-              }`}
+                }`}
             >
               <span>2. Target JD {hasJD ? '✓' : ''}</span>
             </div>
             <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
             <div
-              className={`flex items-center gap-1 px-3 py-1 rounded-full border transition-all ${
-                currentStep === 3
+              className={`flex items-center gap-1 px-3 py-1 rounded-full border transition-all ${currentStep === 3
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
                   : 'bg-white text-slate-400 border-slate-200'
-              }`}
+                }`}
             >
               <span>3. Edit & Results</span>
             </div>
@@ -501,23 +498,20 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                       <div
                         key={resume.id}
                         onClick={() => setActiveResumeTab(resume.id || '')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                          isActive
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${isActive
                             ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
                             : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
-                        }`}
+                          }`}
                       >
                         <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            isReady ? (isActive ? 'bg-amber-300' : 'bg-emerald-500') : 'bg-slate-300'
-                          }`}
+                          className={`w-1.5 h-1.5 rounded-full ${isReady ? (isActive ? 'bg-amber-300' : 'bg-emerald-500') : 'bg-slate-300'
+                            }`}
                         />
                         <span className="truncate max-w-[120px]">{resume.filename}</span>
                         {resume.isPrimary && (
                           <span
-                            className={`text-[9px] px-1 rounded uppercase font-bold ${
-                              isActive ? 'bg-blue-700 text-white' : 'bg-blue-100 text-blue-700'
-                            }`}
+                            className={`text-[9px] px-1 rounded uppercase font-bold ${isActive ? 'bg-blue-700 text-white' : 'bg-blue-100 text-blue-700'
+                              }`}
                           >
                             Primary
                           </span>
@@ -601,11 +595,10 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                       handleFileUpload(e.dataTransfer.files[0]);
                     }
                   }}
-                  className={`flex-1 border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center text-center transition-all relative overflow-hidden ${
-                    isDraggingOver
+                  className={`flex-1 border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center text-center transition-all relative overflow-hidden ${isDraggingOver
                       ? 'border-blue-500 bg-blue-50/50 scale-[0.99]'
                       : 'border-slate-200 hover:border-blue-300 bg-white'
-                  }`}
+                    }`}
                 >
                   {/* Upload Progress Overlay */}
                   {isUploading && (
@@ -724,11 +717,10 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                 <div className="flex items-center gap-1.5 select-none">
                   <button
                     onClick={() => setJdTab('create_ai')}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                      jdTab === 'create_ai'
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${jdTab === 'create_ai'
                         ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
                         : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
-                    }`}
+                      }`}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Create with AI</span>
@@ -736,11 +728,10 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
 
                   <button
                     onClick={() => setJdTab('paste')}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                      jdTab === 'paste'
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${jdTab === 'paste'
                         ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
                         : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
-                    }`}
+                      }`}
                   >
                     <FileCode className="w-3.5 h-3.5" />
                     <span>Direct Paste</span>
@@ -748,11 +739,10 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
 
                   <button
                     onClick={() => setJdTab('upload')}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                      jdTab === 'upload'
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${jdTab === 'upload'
                         ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
                         : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
-                    }`}
+                      }`}
                   >
                     <Upload className="w-3.5 h-3.5" />
                     <span>Upload File</span>
@@ -760,11 +750,10 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
 
                   <button
                     onClick={() => setJdTab('history')}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ml-auto cursor-pointer ${
-                      jdTab === 'history'
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ml-auto cursor-pointer ${jdTab === 'history'
                         ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
                         : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
-                    }`}
+                      }`}
                   >
                     <History className="w-3.5 h-3.5" />
                     <span>History ({jdHistory.length})</span>
@@ -931,7 +920,7 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                                 <span className="text-[10px] text-slate-400 font-normal shrink-0">{item.date}</span>
                               </div>
                               <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{item.text}</p>
-                              
+
                               <button
                                 type="button"
                                 onClick={(e) => deleteJdHistoryItem(item.id, e)}
@@ -988,7 +977,7 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                 onClick={handleExecuteMerge}
                 className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
-                <span>Open in AI Studio</span>
+                <span>Next</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -1113,11 +1102,10 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                     <button
                       key={section.id}
                       onClick={() => setActivePreviewSection(section.type)}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                        activePreviewSection === section.type
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${activePreviewSection === section.type
                           ? 'bg-blue-600 text-white shadow-2xs'
                           : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
-                      }`}
+                        }`}
                     >
                       {section.title}
                     </button>
