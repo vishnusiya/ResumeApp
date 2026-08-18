@@ -1,6 +1,16 @@
 import type { ResumeData, PersonalInfo, ResumeSection, PageSettings, SectionType } from '../types/resume';
 import { defaultPageSettings, initialResumeData } from '../constants/initialResume';
 
+const cleanString = (val: any, fallback = ''): string => {
+  if (typeof val !== 'string') return fallback;
+  const trimmed = val.trim();
+  const lower = trimmed.toLowerCase();
+  if (!trimmed || ['null', 'undefined', 'none', 'n/a', 'nil', 'false', '0'].includes(lower)) {
+    return fallback;
+  }
+  return trimmed;
+};
+
 /**
  * Deeply sanitizes and normalizes any resume data object (from JSON, file upload, or localStorage)
  * to guarantee that no undefined or null property accesses can ever crash React.
@@ -13,19 +23,15 @@ export function sanitizeResumeData(raw: any): ResumeData {
   // 1. Sanitize Personal Info
   const rawInfo = raw.personalInfo || {};
   const personalInfo: PersonalInfo = {
-    fullName: typeof rawInfo.fullName === 'string' && rawInfo.fullName.trim()
-      ? rawInfo.fullName.trim()
-      : 'YOUR FULL NAME',
-    jobTitle: typeof rawInfo.jobTitle === 'string' && rawInfo.jobTitle.trim()
-      ? rawInfo.jobTitle.trim()
-      : 'Professional Title',
-    phone: typeof rawInfo.phone === 'string' ? rawInfo.phone : '',
-    email: typeof rawInfo.email === 'string' ? rawInfo.email : '',
-    location: typeof rawInfo.location === 'string' ? rawInfo.location : '',
-    linkedin: typeof rawInfo.linkedin === 'string' ? rawInfo.linkedin : '',
-    github: typeof rawInfo.github === 'string' ? rawInfo.github : '',
-    website: typeof rawInfo.website === 'string' ? rawInfo.website : '',
-    avatarUrl: typeof rawInfo.avatarUrl === 'string' ? rawInfo.avatarUrl : '',
+    fullName: cleanString(rawInfo.fullName, 'YOUR FULL NAME'),
+    jobTitle: cleanString(rawInfo.jobTitle, 'Professional Title'),
+    phone: cleanString(rawInfo.phone, ''),
+    email: cleanString(rawInfo.email, ''),
+    location: cleanString(rawInfo.location, ''),
+    linkedin: cleanString(rawInfo.linkedin, ''),
+    github: cleanString(rawInfo.github, ''),
+    website: cleanString(rawInfo.website, ''),
+    avatarUrl: cleanString(rawInfo.avatarUrl, ''),
   };
 
   // 2. Sanitize Sections

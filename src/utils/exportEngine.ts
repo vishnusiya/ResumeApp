@@ -56,13 +56,21 @@ export async function exportToDocx(resume: ResumeData, filename = 'resume.docx')
     })
   );
 
+  const isVal = (v?: string): boolean => {
+    if (!v || typeof v !== 'string') return false;
+    const s = v.trim().toLowerCase();
+    return s.length > 0 && !['null', 'undefined', 'none', 'n/a', 'nil', 'false'].includes(s);
+  };
+
   // Contact Line
   const contactParts = [
     pInfo.phone,
     pInfo.email,
     pInfo.location,
     pInfo.linkedin,
-  ].filter(Boolean);
+    pInfo.github,
+    pInfo.website,
+  ].filter(isVal).map((v) => v!.trim());
 
   children.push(
     new Paragraph({

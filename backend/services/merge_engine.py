@@ -284,17 +284,24 @@ Return ONLY a valid JSON object formatted as:
 
     # Extract and parse ResumeData
     merged_data_raw = data.get("mergedResume", {})
-    personal_raw = merged_data_raw.get("personalInfo", {})
-    sections_raw = merged_data_raw.get("sections", [])
+    def clean_str(v: Any, default: str = "") -> str:
+        if not v or not isinstance(v, str):
+            return default
+        s = v.strip()
+        if s.lower() in ("null", "none", "undefined", "n/a", "nil", "false", "0"):
+            return default
+        return s
+
+    primary_pinfo = req.primaryResume.parsedData.personalInfo if req.primaryResume.parsedData else None
 
     personal_info = PersonalInfo(
-        fullName=personal_raw.get("fullName", req.primaryResume.parsedData.personalInfo.fullName if req.primaryResume.parsedData else "CANDIDATE"),
-        jobTitle=personal_raw.get("jobTitle", req.primaryResume.parsedData.personalInfo.jobTitle if req.primaryResume.parsedData else ""),
-        email=personal_raw.get("email", req.primaryResume.parsedData.personalInfo.email if req.primaryResume.parsedData else ""),
-        phone=personal_raw.get("phone", req.primaryResume.parsedData.personalInfo.phone if req.primaryResume.parsedData else ""),
-        location=personal_raw.get("location", req.primaryResume.parsedData.personalInfo.location if req.primaryResume.parsedData else ""),
-        linkedin=personal_raw.get("linkedin", req.primaryResume.parsedData.personalInfo.linkedin if req.primaryResume.parsedData else ""),
-        github=personal_raw.get("github", req.primaryResume.parsedData.personalInfo.github if req.primaryResume.parsedData else "")
+        fullName=clean_str(personal_raw.get("fullName"), primary_pinfo.fullName if primary_pinfo else "CANDIDATE"),
+        jobTitle=clean_str(personal_raw.get("jobTitle"), primary_pinfo.jobTitle if primary_pinfo else ""),
+        email=clean_str(personal_raw.get("email"), primary_pinfo.email if primary_pinfo else ""),
+        phone=clean_str(personal_raw.get("phone"), primary_pinfo.phone if primary_pinfo else ""),
+        location=clean_str(personal_raw.get("location"), primary_pinfo.location if primary_pinfo else ""),
+        linkedin=clean_str(personal_raw.get("linkedin"), primary_pinfo.linkedin if primary_pinfo else ""),
+        github=clean_str(personal_raw.get("github"), primary_pinfo.github if primary_pinfo else "")
     )
 
     sections: List[ResumeSection] = []

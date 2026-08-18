@@ -384,15 +384,23 @@ Raw Resume Content:
                     )
                 )
 
+        def clean_val(v: Any, default: str = "") -> str:
+            if not v or not isinstance(v, str):
+                return default
+            s = v.strip()
+            if s.lower() in ("null", "none", "undefined", "n/a", "nil", "false", "0"):
+                return default
+            return s
+
         p_info = content_dict.get("personalInfo", {})
         personal_info = PersonalInfo(
-            fullName=p_info.get("fullName") or "YOUR NAME",
-            jobTitle=p_info.get("jobTitle") or "Professional",
-            email=p_info.get("email") or "",
-            phone=p_info.get("phone") or "",
-            location=p_info.get("location") or "Kerala, India",
-            linkedin=p_info.get("linkedin") or "",
-            github=p_info.get("github") or ""
+            fullName=clean_val(p_info.get("fullName"), "YOUR NAME"),
+            jobTitle=clean_val(p_info.get("jobTitle"), "Professional"),
+            email=clean_val(p_info.get("email"), ""),
+            phone=clean_val(p_info.get("phone"), ""),
+            location=clean_val(p_info.get("location"), "Kerala, India"),
+            linkedin=clean_val(p_info.get("linkedin"), ""),
+            github=clean_val(p_info.get("github"), "")
         )
 
         return ResumeData(
@@ -400,4 +408,5 @@ Raw Resume Content:
             sections=sections,
             pageSettings=PageSettings()
         )
+
 

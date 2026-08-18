@@ -344,18 +344,56 @@ export const PagePreviewPanel: React.FC<PagePreviewPanelProps> = ({
                     {personalInfo.jobTitle}
                   </div>
 
-                  {/* Contact Info Line */}
-                  <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mt-2 text-[0.88em] text-slate-600">
-                    {personalInfo.phone && <span>📞 {personalInfo.phone}</span>}
-                    {personalInfo.phone && personalInfo.email && <span className="text-slate-300">|</span>}
-                    {personalInfo.email && <span>✉️ {personalInfo.email}</span>}
-                    {personalInfo.email && personalInfo.location && <span className="text-slate-300">|</span>}
-                    {personalInfo.location && <span>📍 {personalInfo.location}</span>}
-                    {personalInfo.location && personalInfo.linkedin && <span className="text-slate-300">|</span>}
-                    {personalInfo.linkedin && (
-                      <span className="text-blue-600 font-medium">🔗 {personalInfo.linkedin}</span>
-                    )}
-                  </div>
+                  {/* Contact Info Line (Cleaned against null / empty values) */}
+                  {(() => {
+                    const isVal = (v?: string) => {
+                      if (!v || typeof v !== 'string') return false;
+                      const s = v.trim().toLowerCase();
+                      return s.length > 0 && !['null', 'undefined', 'none', 'n/a', 'nil', 'false'].includes(s);
+                    };
+
+                    const items: { key: string; el: React.ReactNode }[] = [];
+                    if (isVal(personalInfo.phone)) {
+                      items.push({ key: 'phone', el: <span>📞 {personalInfo.phone?.trim()}</span> });
+                    }
+                    if (isVal(personalInfo.email)) {
+                      items.push({ key: 'email', el: <span>✉️ {personalInfo.email?.trim()}</span> });
+                    }
+                    if (isVal(personalInfo.location)) {
+                      items.push({ key: 'loc', el: <span>📍 {personalInfo.location?.trim()}</span> });
+                    }
+                    if (isVal(personalInfo.linkedin)) {
+                      items.push({
+                        key: 'li',
+                        el: <span className="text-blue-600 font-medium">🔗 {personalInfo.linkedin?.trim()}</span>,
+                      });
+                    }
+                    if (isVal(personalInfo.github)) {
+                      items.push({
+                        key: 'gh',
+                        el: <span className="text-slate-700 font-medium">💻 {personalInfo.github?.trim()}</span>,
+                      });
+                    }
+                    if (isVal(personalInfo.website)) {
+                      items.push({
+                        key: 'web',
+                        el: <span className="text-blue-600 font-medium">🌐 {personalInfo.website?.trim()}</span>,
+                      });
+                    }
+
+                    if (items.length === 0) return null;
+
+                    return (
+                      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mt-2 text-[0.88em] text-slate-600">
+                        {items.map((item, idx) => (
+                          <React.Fragment key={item.key}>
+                            {idx > 0 && <span className="text-slate-300">|</span>}
+                            {item.el}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
