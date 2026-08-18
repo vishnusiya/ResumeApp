@@ -1,0 +1,262 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  #root {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Print Simulation Page Styles */
+.resume-paper-shadow {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.resume-paper-shadow:hover {
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.15), 0 10px 15px -7px rgba(0, 0, 0, 0.1), 0 0 1px 1px rgba(0, 0, 0, 0.08);
+}
+
+/* Pulse Highlight for Scroll-to-Highlight Sync */
+@keyframes section-pulse-highlight {
+  0% {
+    background-color: rgba(59, 130, 246, 0.22);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.45);
+  }
+  50% {
+    background-color: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.highlight-pulse {
+  animation: section-pulse-highlight 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  border-radius: 4px;
+}
+
+/* Page Break Visual Indicator */
+.page-break-line {
+  position: relative;
+  border-top: 2px dashed #94a3b8;
+  margin: 16px 0;
+}
+
+.page-break-line::after {
+  content: 'PAGE BREAK (Ctrl+Enter)';
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  background: #f8fafc;
+  padding: 0 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+}
+
+/* Print Styles */
+@media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    width: 100% !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #root {
+    height: auto !important;
+    overflow: visible !important;
+    width: 100% !important;
+    display: block !important;
+    position: static !important;
+  }
+
+  /* Hide app chrome: headers, footers, sidebars, editors, toolbars, toasts, and modals */
+  header,
+  footer,
+  aside,
+  main,
+  .no-print,
+  .modal-backdrop,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* Unhide main workspace layout */
+  #root > div {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  /* Unhide preview panel and make it unconstrained */
+  section {
+    background: transparent !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+    display: block !important;
+    border: none !important;
+  }
+
+  .preview-top-bar,
+  .preview-navigator {
+    display: none !important;
+  }
+
+  .preview-canvas-area {
+    overflow: visible !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    display: block !important;
+  }
+
+  .page-container {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 auto !important;
+    margin-bottom: 0 !important;
+    transform: none !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  .highlight-pulse {
+    animation: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+
+/* Content Editable Styles */
+[contenteditable="true"]:focus {
+  outline: none;
+}
+
+.editor-content p {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.editor-content ul {
+  list-style-type: disc;
+  margin-left: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.editor-content ol {
+  list-style-type: decimal;
+  margin-left: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.editor-content li {
+  margin-bottom: 0.25rem;
+}
+
+.editor-content h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.editor-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.editor-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.editor-content a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* Diff Highlight */
+.diff-added {
+  background-color: #dcfce7;
+  color: #15803d;
+  font-weight: 600;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+}
+
+.diff-removed {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  text-decoration: line-through;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+}
