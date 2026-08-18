@@ -20,7 +20,8 @@ import {
   Star,
   RotateCcw,
   FileEdit,
-  FolderOpen
+  FolderOpen,
+  Trash2
 } from 'lucide-react';
 import type {
   ResumeData,
@@ -30,6 +31,16 @@ import type {
 } from '../../types/resume';
 import { uploadResumeApi, mergeResumesApi, generateJDApi } from '../../services/api';
 import { extractKeywordsFromJDText } from '../../utils/resumeMerger';
+
+interface JDHistoryEntry {
+  id: string;
+  prompt: string;
+  text: string;
+  date: string;
+  source: 'ai' | 'paste' | 'upload';
+}
+
+const JD_HISTORY_STORAGE_KEY = 'ai_resume_jd_history_v2';
 
 interface ResumeMergeStudioModalProps {
   isOpen: boolean;
@@ -84,19 +95,80 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
   const [isGeneratingJD, setIsGeneratingJD] = useState(false);
   const [jdText, setJdText] = useState('');
   const [isJdGenerated, setIsJdGenerated] = useState(false);
-  const [jdHistory, setJdHistory] = useState<{ prompt: string; text: string; date: string }[]>([
-    {
-      prompt: 'Senior Full-Stack Engineer at Fintech Startup',
-      text: 'Senior Full-Stack Engineer needed for high-throughput fintech platform. Required: React, Next.js, Node.js, AWS, Microservices, PostgreSQL. Preferred: TypeScript, Docker, Kubernetes, CI/CD.',
-      date: 'Recent',
-    },
-  ]);
+
+  // Persistent JD History from LocalStorage without Database
+  const [jdHistory, setJdHistory] = useState<JDHistoryEntry[]>(() => {
+    try {
+      const saved = localStorage.getItem(JD_HISTORY_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to load JD history from localStorage', e);
+    }
+    return [
+      {
+        id: 'jd-init-1',
+        prompt: 'Senior Full-Stack Engineer at Fintech Startup',
+        text: 'Senior Full-Stack Engineer needed for high-throughput fintech platform. Required: React, Next.js, Node.js, AWS, Microservices, PostgreSQL. Preferred: TypeScript, Docker, Kubernetes, CI/CD.',
+        date: 'Recent',
+        source: 'ai',
+      },
+    ];
+  });
 
   // Loading & Merging State
   const [isMerging, setIsMerging] = useState(false);
   const [mergeResult, setMergeResult] = useState<ResumeMergeResponse | null>(null);
   const [activePreviewSection, setActivePreviewSection] = useState<string>('summary');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Helper to persist JD history into localStorage
+  const addJdToHistory = (promptStr: string, textStr: string, source: 'ai' | 'paste' | 'upload') => {
+    if (!textStr || textStr.trim().length < 15) return;
+    const newEntry: JDHistoryEntry = {
+      id: `jd-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      prompt: promptStr.slice(0, 60),
+      text: textStr.trim(),
+      date: new Date().toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      source,
+    };
+    setJdHistory((prev) => {
+      const filtered = prev.filter((item) => item.text.trim() !== textStr.trim());
+      const updated = [newEntry, ...filtered.slice(0, 24)];
+      try {
+        localStorage.setItem(JD_HISTORY_STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.error('Failed to save JD history to localStorage', e);
+      }
+      return updated;
+    });
+  };
+
+  const deleteJdHistoryItem = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setJdHistory((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      try {
+        localStorage.setItem(JD_HISTORY_STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.error('Failed to update JD history in localStorage', e);
+      }
+      return updated;
+    });
+  };
+
+  const clearAllJdHistory = () => {
+    if (window.confirm('Clear all Job Description history?')) {
+      setJdHistory([]);
+      try {
+        localStorage.removeItem(JD_HISTORY_STORAGE_KEY);
+      } catch (e) {
+        console.error('Failed to clear JD history', e);
+      }
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -262,26 +334,19 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
     );
   };
 
-  // Handlers for JD Generation (Fix 1: Sync to both Describe Target Role and Paste Full JD Text)
+  // Handlers for JD Generation & Automatic History Saving
   const handleGenerateJD = async () => {
     if (!rolePrompt.trim()) return;
     setIsGeneratingJD(true);
     setErrorMsg(null);
     try {
       const res = await generateJDApi(rolePrompt);
-      // Synchronize generated text across both inputs
       setJdText(res.text);
       setRolePrompt(res.text);
       setIsJdGenerated(true);
 
-      setJdHistory((prev) => [
-        {
-          prompt: rolePrompt.slice(0, 50),
-          text: res.text,
-          date: 'Just now',
-        },
-        ...prev.slice(0, 8),
-      ]);
+      // Auto-save to persistent history (localStorage)
+      addJdToHistory(rolePrompt, res.text, 'ai');
     } catch (err: any) {
       setErrorMsg(`JD Generation failed: ${err.message}`);
     } finally {
@@ -298,6 +363,10 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
     const primary = sourceResumes.find((r) => r.isPrimary) || sourceResumes[0];
     const secondaries = sourceResumes.filter((r) => !r.isPrimary && (r.parsedData || r.content.trim()));
     const finalJdText = (jdTab === 'create_ai' ? rolePrompt : jdText).trim();
+
+    if (finalJdText && finalJdText.length > 20) {
+      addJdToHistory('Target Job Description', finalJdText, 'paste');
+    }
 
     const requestPayload = {
       primaryResume: primary,
@@ -476,7 +545,7 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                   </button>
                 </div>
 
-                {/* Resume Actions Bar (Fix 2: Option to Change, Replace, or Set As Primary) */}
+                {/* Resume Actions Bar */}
                 <div className="flex items-center justify-between text-xs px-1">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-800">{activeResume.filename}</span>
@@ -518,7 +587,7 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                   </div>
                 </div>
 
-                {/* Upload or Direct Paste Card (Fix 3: Smooth upload, loader overlay, instant file browsing) */}
+                {/* Upload or Direct Paste Card */}
                 <div
                   onDragOver={(e) => {
                     e.preventDefault();
@@ -538,7 +607,7 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                       : 'border-slate-200 hover:border-blue-300 bg-white'
                   }`}
                 >
-                  {/* Upload Progress Overlay (Fix 3) */}
+                  {/* Upload Progress Overlay */}
                   {isUploading && (
                     <div className="absolute inset-0 bg-white/95 backdrop-blur-xs flex flex-col items-center justify-center p-6 z-20 animate-in fade-in">
                       <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-2" />
@@ -718,12 +787,16 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                         )}
                       </div>
 
-                      {/* Fix 1: Same generated content is directly populated and editable here */}
                       <textarea
                         value={rolePrompt}
                         onChange={(e) => {
                           setRolePrompt(e.target.value);
                           setJdText(e.target.value);
+                        }}
+                        onBlur={() => {
+                          if (rolePrompt.trim().length > 30) {
+                            addJdToHistory(rolePrompt.slice(0, 40), rolePrompt, 'ai');
+                          }
                         }}
                         placeholder="e.g., Senior Full-Stack Engineer at a fintech startup with Next.js, Go, AWS, Microservices..."
                         className="w-full flex-1 p-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:outline-none resize-none leading-relaxed"
@@ -784,6 +857,11 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                           setJdText(e.target.value);
                           setRolePrompt(e.target.value);
                         }}
+                        onBlur={() => {
+                          if (jdText.trim().length > 25) {
+                            addJdToHistory('Pasted Job Description', jdText, 'paste');
+                          }
+                        }}
                         placeholder="Paste the full job posting, required qualifications, and responsibilities here..."
                         className="w-full flex-1 p-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:outline-none resize-none leading-relaxed"
                         rows={7}
@@ -803,9 +881,11 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                           accept=".pdf,.docx,.txt"
                           onChange={async (e) => {
                             if (e.target.files?.[0]) {
-                              const text = await e.target.files[0].text();
+                              const file = e.target.files[0];
+                              const text = await file.text();
                               setJdText(text);
                               setRolePrompt(text);
+                              addJdToHistory(file.name, text, 'upload');
                             }
                           }}
                           className="hidden"
@@ -815,25 +895,55 @@ export const ResumeMergeStudioModal: React.FC<ResumeMergeStudioModalProps> = ({
                   )}
 
                   {jdTab === 'history' && (
-                    <div className="flex-1 overflow-y-auto space-y-2">
-                      {jdHistory.map((item, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => {
-                            setJdText(item.text);
-                            setRolePrompt(item.text);
-                            setJdTab('create_ai');
-                            setIsJdGenerated(true);
-                          }}
-                          className="p-2.5 border border-slate-200 hover:border-purple-300 rounded-xl bg-slate-50/50 hover:bg-purple-50/30 transition-all cursor-pointer space-y-1"
-                        >
-                          <div className="flex items-center justify-between text-xs font-bold text-slate-900">
-                            <span>{item.prompt}</span>
-                            <span className="text-[10px] text-slate-400">{item.date}</span>
+                    <div className="flex-1 flex flex-col space-y-2 overflow-hidden">
+                      <div className="flex items-center justify-between text-xs pb-1 border-b border-slate-100">
+                        <span className="font-bold text-slate-700">Saved Job Descriptions ({jdHistory.length})</span>
+                        {jdHistory.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={clearAllJdHistory}
+                            className="text-[10px] text-red-500 hover:underline cursor-pointer"
+                          >
+                            Clear All
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                        {jdHistory.length === 0 ? (
+                          <div className="text-center py-8 text-slate-400 text-xs">
+                            No Job Descriptions saved in history yet.
                           </div>
-                          <p className="text-[11px] text-slate-500 line-clamp-2">{item.text}</p>
-                        </div>
-                      ))}
+                        ) : (
+                          jdHistory.map((item) => (
+                            <div
+                              key={item.id}
+                              onClick={() => {
+                                setJdText(item.text);
+                                setRolePrompt(item.text);
+                                setJdTab('create_ai');
+                                setIsJdGenerated(true);
+                              }}
+                              className="p-3 border border-slate-200 hover:border-purple-300 rounded-xl bg-slate-50/50 hover:bg-purple-50/30 transition-all cursor-pointer space-y-1.5 group relative"
+                            >
+                              <div className="flex items-center justify-between text-xs font-bold text-slate-900 pr-6">
+                                <span className="truncate">{item.prompt}</span>
+                                <span className="text-[10px] text-slate-400 font-normal shrink-0">{item.date}</span>
+                              </div>
+                              <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{item.text}</p>
+                              
+                              <button
+                                type="button"
+                                onClick={(e) => deleteJdHistoryItem(item.id, e)}
+                                className="absolute top-2.5 right-2 p-1 text-slate-300 hover:text-red-500 hover:bg-white rounded transition-colors"
+                                title="Delete from history"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
                   )}
 

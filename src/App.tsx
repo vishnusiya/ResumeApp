@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ResumeData, ResumeSection, VersionSnapshot, AISuggestion } from './types/resume';
 import { initialResumeData } from './constants/initialResume';
+import { AppSidebar, type AppView } from './components/layout/AppSidebar';
+import { DashboardView } from './components/dashboard/DashboardView';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { SectionsPanel } from './components/sections/SectionsPanel';
@@ -19,6 +21,7 @@ import { calculateATSScore } from './utils/atsCalculator';
 import { sanitizeResumeData } from './utils/dataNormalizer';
 
 export function App() {
+  const [activeView, setActiveView] = useState<AppView>('dashboard');
   const [resumeData, setResumeData] = useState<ResumeData>(() => {
     try {
       const saved = localStorage.getItem('ai_resume_editor_data_v2');
@@ -285,79 +288,108 @@ export function App() {
     setPageCount((prev) => (prev === count ? prev : count));
   }, []);
 
+  const handleResetSession = useCallback(() => {
+    const cleanData = sanitizeResumeData(initialResumeData);
+    updateResumeData(() => cleanData);
+    setActiveSectionId(cleanData.sections[0]?.id || 'sec-summary');
+    localStorage.removeItem('ai_resume_editor_data_v2');
+  }, [updateResumeData]);
+
   return (
-    <div className="h-screen w-screen flex flex-col bg-slate-100 overflow-hidden font-sans text-slate-900">
-      {/* Top Header Navigation */}
-      <Header
-        resumeData={resumeData}
-        canUndo={historyIndex > 0}
-        canRedo={historyIndex < history.length - 1}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-        onSave={handleSaveManual}
-        onOpenUploadModal={() => setUploadModalOpen(true)}
-        onOpenMergeStudio={() => setMergeStudioOpen(true)}
-        autosaveStatus={autosaveStatus}
+    <div className="h-screen w-screen flex flex-row bg-slate-100 overflow-hidden font-sans text-slate-900">
+      {/* Global Sidebar Navigation (Dashboard, Resume Editor, Generate Resume) */}
+      <AppSidebar
+        activeView={activeView}
+        onNavigate={setActiveView}
+        onOpenGenerateResume={() => setMergeStudioOpen(true)}
+        candidateName={resumeData.personalInfo.fullName}
       />
 
-      {/* Main Workspace: Three-Panel Architecture */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Panel 1: Left - Sections Navigation */}
-        {!isFullscreen && (
-          <SectionsPanel
-            sections={resumeData.sections}
-            activeSectionId={activeSectionId}
-            onSelectSection={handleSelectSection}
-            onReorderSections={handleReorderSections}
-            onMoveSection={handleMoveSection}
-            onDeleteSection={handleDeleteSection}
-            onResetSection={handleResetSection}
-            onOpenAIAssist={() => setAiActionOpen(true)}
-            onOpenAddSectionModal={() => setAddSectionOpen(true)}
-            onOpenBatchAIOptimize={() => setBatchAiOpen(true)}
-            onOpenPersonalInfoModal={() => setPersonalInfoOpen(true)}
-          />
-        )}
-
-        {/* Panel 2: Center - Content Editor */}
-        {!isFullscreen && activeSection && (
-          <ContentEditor
-            activeSection={activeSection}
-            onUpdateContentHtml={handleUpdateContentHtml}
-            onInsertPageBreak={handleInsertPageBreak}
-            onOpenAIAssist={() => setAiActionOpen(true)}
-          />
-        )}
-
-        {/* Panel 3: Right - Live Page Preview & Navigator */}
-        <PagePreviewPanel
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top Header Navigation */}
+        <Header
           resumeData={resumeData}
-          activeSectionId={activeSectionId}
-          onSelectSection={handleSelectSection}
+          canUndo={historyIndex > 0}
+          canRedo={historyIndex < history.length - 1}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          onSave={handleSaveManual}
+          onOpenUploadModal={() => setUploadModalOpen(true)}
+          onOpenMergeStudio={() => setMergeStudioOpen(true)}
+          autosaveStatus={autosaveStatus}
+        />
+
+        {/* Active View: Dashboard or Three-Panel Resume Editor */}
+        {activeView === 'dashboard' ? (
+          <DashboardView
+            resumeData={resumeData}
+            onNavigateToEditor={() => setActiveView('editor')}
+            onOpenGenerateResume={() => setMergeStudioOpen(true)}
+            onOpenImportResume={() => setUploadModalOpen(true)}
+            onResetSession={handleResetSession}
+          />
+        ) : (
+          /* Main Workspace: Three-Panel Architecture */
+          <div className="flex-1 flex overflow-hidden">
+            {/* Panel 1: Left - Sections Navigation */}
+            {!isFullscreen && (
+              <SectionsPanel
+                sections={resumeData.sections}
+                activeSectionId={activeSectionId}
+                onSelectSection={handleSelectSection}
+                onReorderSections={handleReorderSections}
+                onMoveSection={handleMoveSection}
+                onDeleteSection={handleDeleteSection}
+                onResetSection={handleResetSection}
+                onOpenAIAssist={() => setAiActionOpen(true)}
+                onOpenAddSectionModal={() => setAddSectionOpen(true)}
+                onOpenBatchAIOptimize={() => setBatchAiOpen(true)}
+                onOpenPersonalInfoModal={() => setPersonalInfoOpen(true)}
+              />
+            )}
+
+            {/* Panel 2: Center - Content Editor */}
+            {!isFullscreen && activeSection && (
+              <ContentEditor
+                activeSection={activeSection}
+                onUpdateContentHtml={handleUpdateContentHtml}
+                onInsertPageBreak={handleInsertPageBreak}
+                onOpenAIAssist={() => setAiActionOpen(true)}
+              />
+            )}
+
+            {/* Panel 3: Right - Live Page Preview & Navigator */}
+            <PagePreviewPanel
+              resumeData={resumeData}
+              activeSectionId={activeSectionId}
+              onSelectSection={handleSelectSection}
+              onOpenPageSetup={() => setPageSetupOpen(true)}
+              onUpdatePageSettings={(newSettings) =>
+                updateResumeData((prev) => ({
+                  ...prev,
+                  pageSettings: { ...prev.pageSettings, ...newSettings },
+                }))
+              }
+              onPageCountChange={handlePageCountChange}
+              onOpenPersonalInfoModal={() => setPersonalInfoOpen(true)}
+            />
+          </div>
+        )}
+
+        {/* Bottom Status Bar */}
+        <Footer
+          atsScore={atsScore}
+          pageCount={pageCount}
+          wordCount={totalWordCount}
+          lastUpdated={autosaveStatus}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+          onOpenATSModal={() => setAtsAnalysisOpen(true)}
+          onOpenVersionHistory={() => setVersionHistoryOpen(true)}
           onOpenPageSetup={() => setPageSetupOpen(true)}
-          onUpdatePageSettings={(newSettings) =>
-            updateResumeData((prev) => ({
-              ...prev,
-              pageSettings: { ...prev.pageSettings, ...newSettings },
-            }))
-          }
-          onPageCountChange={handlePageCountChange}
-          onOpenPersonalInfoModal={() => setPersonalInfoOpen(true)}
         />
       </div>
-
-      {/* Bottom Status Bar */}
-      <Footer
-        atsScore={atsScore}
-        pageCount={pageCount}
-        wordCount={totalWordCount}
-        lastUpdated={autosaveStatus}
-        isFullscreen={isFullscreen}
-        onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
-        onOpenATSModal={() => setAtsAnalysisOpen(true)}
-        onOpenVersionHistory={() => setVersionHistoryOpen(true)}
-        onOpenPageSetup={() => setPageSetupOpen(true)}
-      />
 
       {/* Upload Modal */}
       <UploadResumeModal

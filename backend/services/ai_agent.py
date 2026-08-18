@@ -217,15 +217,22 @@ def sanitize_ai_output_html(html: str) -> str:
     return cleaned.strip()
 
 async def _call_openai_dual_pass(req: AIRewriteRequest, api_key: str) -> AIRewriteResponse:
+    if req.customPrompt and req.customPrompt.strip():
+        intent_instruction = f"""SPECIFIC USER CUSTOM PROMPT:
+"{req.customPrompt.strip()}"
+Execute ONLY this custom prompt directly against the CURRENT ORIGINAL SECTION CONTENT above. Do NOT combine with pre-existing transformation goals or unrelated rewrites."""
+    else:
+        intent_instruction = f"""TRANSFORMATION GOAL:
+{req.actionType or 'results_driven'} - Enhance original content for ATS authority, STAR method, active verbs, and quantified metrics."""
+
     prompt = f"""
 You are an expert Resume Editor, ATS Optimizer, and Truthful Career Architect.
 Section: {req.sectionTitle} ({req.sectionType})
 
-CURRENT SECTION CONTENT:
+CURRENT ORIGINAL SECTION CONTENT:
 {req.currentContent}
 
-USER INSTRUCTION / GOAL:
-{req.customPrompt or 'Enhance for ATS authority, STAR method, active verbs, and quantified outcomes.'}
+{intent_instruction}
 
 STRICT PROFESSIONAL REQUIREMENTS & NO-HALLUCINATION POLICY:
 1. STRICT REVERSE CHRONOLOGICAL ORDER:
